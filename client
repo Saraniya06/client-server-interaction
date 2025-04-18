@@ -1,0 +1,39 @@
+import java.io.*;
+import java.net.*;
+
+public class ChatClient {
+    public static void main(String[] args) {
+        String host = "localhost";
+        int port = 1234;
+
+        try (
+            Socket socket = new Socket(host, port);
+            BufferedReader consoleReader = new BufferedReader(new InputStreamReader(System.in));
+            PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))
+        ) {
+            System.out.println("Connected to the chat server");
+
+            // Thread to read messages from server
+            new Thread(() -> {
+                String incomingMsg;
+                try {
+                    while ((incomingMsg = reader.readLine()) != null) {
+                        System.out.println("Message: " + incomingMsg);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+
+            // Sending messages
+            String message;
+            while ((message = consoleReader.readLine()) != null) {
+                writer.println(message);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
