@@ -1,0 +1,65 @@
+// Source code is decompiled from a .class file using FernFlower decompiler.
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.util.Iterator;
+
+class ChatServer$ClientHandler extends Thread {
+   private Socket socket;
+   private BufferedReader reader;
+
+   public ChatServer$ClientHandler(Socket var1) {
+      this.socket = var1;
+
+      try {
+         this.reader = new BufferedReader(new InputStreamReader(var1.getInputStream()));
+      } catch (IOException var3) {
+         var3.printStackTrace();
+      }
+
+   }
+
+   public void run() {
+      while(true) {
+         try {
+            String var1;
+            if ((var1 = this.reader.readLine()) != null) {
+               System.out.println("Received: " + var1);
+               this.broadcastMessage(var1, this.socket);
+               continue;
+            }
+         } catch (IOException var11) {
+            var11.printStackTrace();
+         } finally {
+            try {
+               ChatServer.clientSockets.remove(this.socket);
+               this.socket.close();
+            } catch (IOException var10) {
+               var10.printStackTrace();
+            }
+
+         }
+
+         return;
+      }
+   }
+
+   private void broadcastMessage(String var1, Socket var2) {
+      Iterator var3 = ChatServer.clientSockets.iterator();
+
+      while(var3.hasNext()) {
+         Socket var4 = (Socket)var3.next();
+         if (var4 != var2) {
+            try {
+               PrintWriter var5 = new PrintWriter(var4.getOutputStream(), true);
+               var5.println(var1);
+            } catch (IOException var6) {
+               var6.printStackTrace();
+            }
+         }
+      }
+
+   }
+}
